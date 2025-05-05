@@ -76,13 +76,11 @@ import name.abuchen.portfolio.util.Interval;
         while (date.compareTo(interval.getEnd()) <= 0)
         {
             dates[index] = date;
-
-            long thisValuation = totals[index] = snapshot.nextValuation(dates[index]);
+            long thisValuation = totals[index] = snapshot.nextValuation(date);
 
             if (valuation + inboundTransferals[index] == 0)
             {
                 delta[index] = 0;
-
                 long thisDelta = thisValuation - inboundTransferals[index] + outboundTransferals[index] - valuation;
                 if (thisDelta != 0)
                 {
@@ -97,12 +95,29 @@ import name.abuchen.portfolio.util.Interval;
                                 / (double) (valuation + inboundTransferals[index]) - 1;
             }
 
-            accumulated[index] = ((accumulated[index - 1] + 1) * (delta[index] + 1)) - 1;
+            // ** NOTA: eliminamos aquí el cálculo compuesto de accumulated **
 
-            date = date.plusDays(1);
             valuation = thisValuation;
+            date = date.plusDays(1);
             index++;
         }
+
+        // ----> NUEVA LÓGICA: retorno “simple” sobre capital invertido <----
+        long[] investedCapital = calculateInvestedCapital();
+        for (int i = 0; i < accumulated.length; i++)
+        {
+            if (investedCapital[i] != 0)
+            {
+                accumulated[i] = ((double) totals[i] - (double) investedCapital[i])
+                                 / (double) investedCapital[i];
+            }
+            else
+            {
+                accumulated[i] = 0;
+            }
+        }
+    
+    
     }
 
     protected void addValue(long[] array, String currencyCode, long value, Interval interval, LocalDate time)

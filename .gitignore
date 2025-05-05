@@ -9,3 +9,5 @@ workspace
 *.iws
 *.iml
 *.ipr
+/.metadata/
+External Plug-in Libraries/
